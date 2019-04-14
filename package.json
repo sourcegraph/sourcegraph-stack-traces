@@ -1,0 +1,50 @@
+{
+  "name": "stack-traces",
+  "description": "Make stack traces clickable (with links to code files)",
+  "publisher": "sourcegraph",
+  "activationEvents": [
+    "*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sourcegraph/sourcegraph-stack-traces"
+  },
+  "wip": true,
+  "contributes": {
+    "configuration": {
+      "title": "Stack trace configuration"
+    }
+  },
+  "version": "0.0.0-DEVELOPMENT",
+  "license": "MIT",
+  "main": "dist/extension.js",
+  "scripts": {
+    "tslint": "tslint -p tsconfig.json './src/**/*.ts'",
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "parcel build --out-file dist/extension.js src/extension.ts",
+    "serve": "parcel serve --no-hmr --out-file dist/extension.js src/extension.ts",
+    "watch:typecheck": "tsc -p tsconfig.json -w",
+    "watch:build": "tsc -p tsconfig.dist.json -w",
+    "sourcegraph:prepublish": "npm run build"
+  },
+  "browserslist": [
+    "last 1 Chrome versions",
+    "last 1 Firefox versions",
+    "last 1 Edge versions",
+    "last 1 Safari versions"
+  ],
+  "devDependencies": {
+    "@sourcegraph/prettierrc": "^2.2.0",
+    "@sourcegraph/tsconfig": "^4.0.0",
+    "@sourcegraph/tslint-config": "^13.0.0",
+    "@types/lodash": "^4.14.123",
+    "parcel-bundler": "^1.11.0",
+    "sourcegraph": "^23.0.0",
+    "tslint": "^5.15.0",
+    "typescript": "^3.4.2"
+  },
+  "dependencies": {
+    "lodash": "^4.17.11",
+    "rxjs": "^6.4.0"
+  }
+}
