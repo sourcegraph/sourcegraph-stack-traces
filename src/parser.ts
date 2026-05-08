@@ -1,5 +1,3 @@
-import { from } from 'rxjs'
-import { map, switchMap } from 'rxjs/operators'
 import * as sourcegraph from 'sourcegraph'
 
 const ANNOTATED = `
@@ -28,16 +26,51 @@ export function registerStackTraceParser(): sourcegraph.Unsubscribable {
     panelView.title = 'Stack trace'
     panelView.content =
         'Paste in a stack trace to explore it (with clickable links to the locations in your code files).'
-    return from(sourcegraph.app.activeWindowChanges)
-        .pipe(
-            switchMap(activeWindow => (activeWindow ? activeWindow.activeViewComponentChanges : [])),
-            switchMap(editor =>
-                editor ? from(editor.selectionsChanges).pipe(map(selections => ({ editor, selections }))) : []
-            )
-        )
-        .subscribe(({ editor }) => {
-            if (editor.document.text) {
-                panelView.content = ANNOTATED
+
+    let activeViewComponentSubscription: sourcegraph.Unsubscribable | undefined
+    let selectionSubscription: sourcegraph.Unsubscribable | undefined
+
+    const unsubscribeSelection = (): void => {
+        if (selectionSubscription) {
+            selectionSubscription.unsubscribe()
+            selectionSubscription = undefined
+        }
+    }
+
+    const unsubscribeActiveViewComponent = (): void => {
+        unsubscribeSelection()
+        if (activeViewComponentSubscription) {
+            activeViewComponentSubscription.unsubscribe()
+            activeViewComponentSubscription = undefined
+        }
+    }
+
+    const activeWindowSubscription = sourcegraph.app.activeWindowChanges.subscribe(activeWindow => {
+        unsubscribeActiveViewComponent()
+
+        if (!activeWindow) {
+            return
+        }
+
+        activeViewComponentSubscription = activeWindow.activeViewComponentChanges.subscribe(editor => {
+            unsubscribeSelection()
+
+            if (!editor) {
+                return
             }
+
+            selectionSubscription = editor.selectionsChanges.subscribe(() => {
+                if (editor.document.text) {
+                    panelView.content = ANNOTATED
+                }
+            })
         })
+    })
+
+    return {
+        unsubscribe: (): void => {
+            unsubscribeActiveViewComponent()
+            activeWindowSubscription.unsubscribe()
+        },
+    }
 }
