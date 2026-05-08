@@ -1,5 +1,4 @@
-import { from } from 'rxjs'
-import { map, switchMap } from 'rxjs/operators'
+import { from, map, switchMap } from 'rxjs'
 import * as sourcegraph from 'sourcegraph'
 
 const ANNOTATED = `
